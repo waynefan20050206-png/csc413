@@ -31,7 +31,45 @@ public class Pawn extends Piece {
 
     @Override
     public List<Move> pseudoLegalMoves(Board board, Position from) {
-        throw new UnsupportedOperationException("M2: implement Pawn.pseudoLegalMoves");
+        List<Move> moves = new ArrayList<>();
+        int direction = color().pawnDirection();
+
+        Position oneStep = from.offsetOrNull(0, direction);
+        if (oneStep != null && board.isEmpty(oneStep)) {
+            addPawnMoves(moves, from, oneStep, null);
+
+            if (from.rank() == color().pawnStartRank()) {
+                Position twoSteps = from.offsetOrNull(0, 2 * direction);
+                if (twoSteps != null && board.isEmpty(twoSteps)) {
+                    moves.add(Move.quiet(from, twoSteps, this));
+                }
+            }
+        }
+
+        for (int fileDelta : new int[] { -1, 1 }) {
+            Position to = from.offsetOrNull(fileDelta, direction);
+            if (to == null) {
+                continue;
+            }
+            Piece captured = board.pieceAt(to);
+            if (captured != null && captured.color() != color()) {
+                addPawnMoves(moves, from, to, captured);
+            }
+        }
+
+        return moves;
+    }
+
+    private void addPawnMoves(List<Move> moves, Position from, Position to, Piece captured) {
+        if (to.rank() == color().promotionRank()) {
+            for (PieceType choice : PROMOTION_CHOICES) {
+                moves.add(Move.promotion(from, to, this, captured, choice));
+            }
+        } else if (captured == null) {
+            moves.add(Move.quiet(from, to, this));
+        } else {
+            moves.add(Move.capture(from, to, this, captured));
+        }
     }
 
     /**
@@ -47,6 +85,9 @@ public class Pawn extends Piece {
      */
     @Override
     public boolean attacks(Board board, Position from, Position target) {
-        throw new UnsupportedOperationException("M2: implement Pawn.attacks");
+        int direction = color().pawnDirection();
+        Position left = from.offsetOrNull(-1, direction);
+        Position right = from.offsetOrNull(1, direction);
+        return target.equals(left) || target.equals(right);
     }
 }
