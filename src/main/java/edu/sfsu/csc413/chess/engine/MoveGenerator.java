@@ -41,7 +41,41 @@ public final class MoveGenerator {
      * when it tightens.
      */
     public static List<Move> legalMoves(Board board, Color color) {
-        return pseudoLegalMoves(board, color);
+        List<Move> legalMoves = new ArrayList<>();
+        for (Move move : pseudoLegalMoves(board, color)) {
+            board.apply(move);
+            boolean leavesKingInCheck;
+            try {
+                leavesKingInCheck = isInCheck(board, color);
+            } finally {
+                board.undo(move);
+            }
+            if (!leavesKingInCheck) {
+                legalMoves.add(move);
+            }
+        }
+        return legalMoves;
+    }
+
+    /**
+     * Returns whether {@code color}'s king is attacked by the opposing side.
+     * A partial board with no king of that color is not considered in check.
+     */
+    public static boolean isInCheck(Board board, Color color) {
+        Position king = board.kingPosition(color);
+        return king != null && isAttacked(board, king, color.opposite());
+    }
+
+    /**
+     * Returns whether any piece of {@code attacker} attacks {@code target}.
+     */
+    public static boolean isAttacked(Board board, Position target, Color attacker) {
+        for (Position from : board.positionsOf(attacker)) {
+            if (board.pieceAt(from).attacks(board, from, target)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

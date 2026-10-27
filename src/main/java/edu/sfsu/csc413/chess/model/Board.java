@@ -65,6 +65,19 @@ public class Board {
         return positions;
     }
 
+    /**
+     * Returns the square occupied by {@code color}'s king, or {@code null} if
+     * this partial board has no king of that color.
+     */
+    public Position kingPosition(Color color) {
+        for (Position position : positionsOf(color)) {
+            if (pieceAt(position).type() == PieceType.KING) {
+                return position;
+            }
+        }
+        return null;
+    }
+
     @Override
     public String toString() {
         StringBuilder fen = new StringBuilder();
